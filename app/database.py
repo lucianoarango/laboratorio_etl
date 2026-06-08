@@ -51,3 +51,9 @@ def check_mongo_connection() -> bool:
         return True
     except Exception:
         return False
+    
+
+def create_mysql_tables() -> None:
+    import app.models.personajes_sql
+
+    Base.metadata.create_all(bind=engine)
