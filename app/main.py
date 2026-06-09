@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from app.config import settings
 from app.controllers import analitica_controller, etl_controller
 from app.database import create_mysql_tables
+from app.controllers import etl_controller
 
 
 @asynccontextmanager
