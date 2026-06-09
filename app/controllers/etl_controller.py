@@ -1,35 +1,22 @@
 from fastapi import APIRouter
-
-from app.config import settings
-from app.database import check_mongo_connection, check_mysql_connection
-from app.services.etl_service import get_source_metadata
-from app.views.schemas import (
-    AppInfoResponse,
-    DatabaseStatusResponse,
-    SourceMetadataResponse,
-)
-
+from app.services import etl_service
+from pydantic import BaseModel
 
 router = APIRouter()
 
+# Definimos el esquema (View) que exige el PDF para el Body
+class ExtraccionRequest(BaseModel):
+    cantidad: int
 
-@router.get("/", response_model=AppInfoResponse, tags=["Sistema"])
-def get_app_info():
-    return {
-        "app_name": settings.app_name,
-        "environment": settings.app_env,
-        "source_api": settings.api_base_url,
-    }
+@router.post("/api/v1/etl/extraer", status_code=201)
+def extraer_datos_api(request: ExtraccionRequest):
+    return etl_service.extraer_datos(request.cantidad)
 
-
-@router.get("/health", response_model=DatabaseStatusResponse, tags=["Sistema"])
-def health_check():
-    return {
-        "mysql": "ok" if check_mysql_connection() else "error",
-        "mongo": "ok" if check_mongo_connection() else "error",
-    }
+@router.delete("/api/v1/etl/reset", status_code=200)
+def resetear_datos():
+    return etl_service.resetear_pipeline()
 
 
-@router.get("/etl/source", response_model=SourceMetadataResponse, tags=["ETL"])
-def get_etl_source():
-    return get_source_metadata()
+@router.post("/api/v1/etl/transformar", status_code=200)
+def transformar_datos():
+    return etl_service.transformar_y_cargar()
