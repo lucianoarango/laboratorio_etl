@@ -65,3 +65,40 @@ def extraer_datos(cantidad: int):
         "fuente": "Rick & Morty API",
         "status": 201
     }
+from sqlalchemy import text
+# Asegúrate de importar la conexión a MySQL que Luciano dejó configurada.
+# Asumiré que se llama 'engine' o 'SessionLocal' en database.py
+from app.database import engine 
+
+def resetear_pipeline():
+    """
+    Limpia la colección de MongoDB y hace TRUNCATE a la tabla de MySQL (si existe).
+    """
+    try:
+        # 1. Limpiar MongoDB
+        resultado_mongo = mongo_collection.delete_many({})
+        docs_eliminados = resultado_mongo.deleted_count
+
+        # 2. Limpiar MySQL (TRUNCATE seguro)
+        mysql_status = "Tabla truncada"
+        with engine.connect() as conn:
+            try:
+                conn.execute(text("SET FOREIGN_KEY_CHECKS = 0;"))
+                conn.execute(text("TRUNCATE TABLE personajes_master;"))
+                conn.execute(text("SET FOREIGN_KEY_CHECKS = 1;"))
+                conn.commit()
+            except Exception as e:
+                # Si la tabla no existe (Error 1146), lo ignoramos pacíficamente
+                if "1146" in str(e):
+                    mysql_status = "La tabla aún no existe, no se requirió TRUNCATE"
+                else:
+                    raise e # Si es otro error grave, sí lo lanzamos
+
+        return {
+            "mensaje": "Sistema reseteado correctamente",
+            "mongo_docs_eliminados": docs_eliminados,
+            "mysql_rows_eliminadas": mysql_status,
+            "status": 200
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error en el reset: {str(e)}")
