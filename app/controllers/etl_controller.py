@@ -15,3 +15,8 @@ def extraer_datos_api(request: ExtraccionRequest):
 @router.delete("/api/v1/etl/reset", status_code=200)
 def resetear_datos():
     return etl_service.resetear_pipeline()
+
+
+@router.post("/api/v1/etl/transformar", status_code=200)
+def transformar_datos():
+    return etl_service.transformar_y_cargar()

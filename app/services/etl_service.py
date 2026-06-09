@@ -102,3 +102,82 @@ def resetear_pipeline():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en el reset: {str(e)}")
+
+
+
+import pandas as pd
+
+def transformar_y_cargar():
+    """
+    Lee de MongoDB, aplana con Pandas y carga en MySQL.
+    Garantiza Idempotencia (ON DUPLICATE KEY UPDATE) y PK Alineada.
+    """
+    # 1. EXTRACT (Desde MongoDB)
+    datos_crudos = list(mongo_collection.find())
+    if not datos_crudos:
+        raise HTTPException(status_code=400, detail="No hay datos en MongoDB para transformar.")
+
+    # 2. TRANSFORM (Con Pandas)
+    df = pd.DataFrame(datos_crudos)
+
+    # Aplanamiento: La API de Rick & Morty trae 'origin' y 'location' como diccionarios.
+    # Extraemos solo el nombre y creamos columnas planas.
+    df['origen_nombre'] = df['origin'].apply(lambda x: x.get('name') if isinstance(x, dict) else 'Desconocido')
+    df['ubicacion_nombre'] = df['location'].apply(lambda x: x.get('name') if isinstance(x, dict) else 'Desconocido')
+    
+    # Derivada: Contamos cuántos episodios tiene el personaje
+    df['total_episodios'] = df['episode'].apply(lambda x: len(x) if isinstance(x, list) else 0)
+
+    # Seleccionamos las 8 columnas exigidas por la rúbrica
+    columnas_finales = ['_id', 'name', 'status', 'species', 'gender', 'origen_nombre', 'ubicacion_nombre', 'total_episodios']
+    df_limpio = df[columnas_finales].copy()
+
+    # Renombramos '_id' a 'id_personaje' para MySQL (PK Alineada)
+    df_limpio.rename(columns={'_id': 'id_personaje'}, inplace=True)
+
+    # Manejo de nulos
+    df_limpio.fillna('N/A', inplace=True)
+
+    # 3. LOAD (Hacia MySQL)
+    registros_procesados = 0
+    with engine.connect() as conn:
+        # Resiliencia: Creamos la tabla si no existe
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS personajes_master (
+                id_personaje INT PRIMARY KEY,
+                name VARCHAR(100),
+                status VARCHAR(50),
+                species VARCHAR(50),
+                gender VARCHAR(50),
+                origen_nombre VARCHAR(100),
+                ubicacion_nombre VARCHAR(100),
+                total_episodios INT
+            )
+        """))
+
+        # Inserción con Idempotencia (Upsert en MySQL)
+        for _, row in df_limpio.iterrows():
+            query = text("""
+                INSERT INTO personajes_master 
+                (id_personaje, name, status, species, gender, origen_nombre, ubicacion_nombre, total_episodios)
+                VALUES (:id, :name, :status, :species, :gender, :origen, :ubicacion, :episodios)
+                ON DUPLICATE KEY UPDATE
+                name=VALUES(name), status=VALUES(status), species=VALUES(species), 
+                gender=VALUES(gender), origen_nombre=VALUES(origen_nombre), 
+                ubicacion_nombre=VALUES(ubicacion_nombre), total_episodios=VALUES(total_episodios)
+            """)
+            conn.execute(query, {
+                "id": row['id_personaje'], "name": row['name'], "status": row['status'],
+                "species": row['species'], "gender": row['gender'], "origen": row['origen_nombre'],
+                "ubicacion": row['ubicacion_nombre'], "episodios": row['total_episodios']
+            })
+            registros_procesados += 1
+        
+        conn.commit()
+
+    return {
+        "mensaje": "Pipeline finalizado",
+        "registros_procesados": registros_procesados,
+        "tabla_destino": "personajes_master",
+        "status": 200
+    }
