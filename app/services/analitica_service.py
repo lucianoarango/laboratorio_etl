@@ -6,6 +6,10 @@ from fastapi import HTTPException
 
 from app.database import engine
 
+from app.database import mongo_db
+
+from sqlalchemy import text
+
 
 def get_analytics_status() -> dict:
     return {
@@ -101,7 +105,24 @@ def analizar_columna(nombre: str):
 
 def obtener_perfil_dual(id_personaje: int):
 
+    documento_mongo = mongo_db["raw_data"].find_one(
+        {"_id": id_personaje}
+    )
+
+    query = text("""
+        SELECT *
+        FROM personajes_master
+        WHERE id_personaje = :id
+    """)
+
+    with engine.connect() as conn:
+        resultado_mysql = conn.execute(
+            query,
+            {"id": id_personaje}
+        ).mappings().first()
+
     return {
-        "mensaje": "Endpoint E en construcción",
-        "id": id_personaje
+        "id": id_personaje,
+        "mongo_encontrado": documento_mongo is not None,
+        "mysql_encontrado": resultado_mysql is not None
     }
