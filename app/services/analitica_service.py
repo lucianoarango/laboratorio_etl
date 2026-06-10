@@ -97,3 +97,11 @@ def analizar_columna(nombre: str):
         "tipo_detectado": tipo_columna,
         "tipo": tipo
     }
+
+
+def obtener_perfil_dual(id_personaje: int):
+
+    return {
+        "mensaje": "Endpoint E en construcción",
+        "id": id_personaje
+    }
