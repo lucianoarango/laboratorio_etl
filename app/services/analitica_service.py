@@ -36,13 +36,34 @@ def analizar_columna(nombre: str):
     
     # Detectar categoría general del dato
     if tipo_columna in ("str", "object"):
-        tipo = "categorica"
+
+        distribucion = (
+            df[nombre]
+            .value_counts()
+            .to_dict()
+        )
+
+        valor_mas_comun = (
+            df[nombre]
+            .mode()
+            .iloc[0]
+        )
+
+        return {
+            "columna": nombre,
+            "tipo": "categorica",
+            "valores_unicos": int(df[nombre].nunique()),
+            "distribucion": distribucion,
+            "valor_mas_comun": valor_mas_comun,
+            "nulos": int(df[nombre].isna().sum())
+        }
 
     elif tipo_columna in ("int64", "float64"):
         tipo = "numerica"
 
     else:
         tipo = "desconocido"
+    
 
     return {
         "columna": nombre,
