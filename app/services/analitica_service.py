@@ -120,9 +120,27 @@ def obtener_perfil_dual(id_personaje: int):
             query,
             {"id": id_personaje}
         ).mappings().first()
+        
+    if documento_mongo:
+        documento_mongo.pop("_id", None)
+        
+    if not documento_mongo and not resultado_mysql:
+        raise HTTPException(
+            status_code=404,
+            detail="El registro no existe en MongoDB ni en MySQL"
+        )
+        
+    warning = None
 
+    if documento_mongo and not resultado_mysql:
+        warning = "Registro encontrado únicamente en MongoDB"
+
+    elif resultado_mysql and not documento_mongo:
+        warning = "Registro encontrado únicamente en MySQL"
+    
     return {
-        "id": id_personaje,
-        "mongo_encontrado": documento_mongo is not None,
-        "mysql_encontrado": resultado_mysql is not None
-    }
+    "id": id_personaje,
+    "mongo": documento_mongo,
+    "mysql": resultado_mysql,
+    "warning": warning
+}
