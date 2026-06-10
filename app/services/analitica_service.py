@@ -32,7 +32,9 @@ def analizar_columna(nombre: str):
             }
         )
 
+    tipo_columna = str(df[nombre].dtype)
+
     return {
         "columna": nombre,
-        "tipo_detectado": str(df[nombre].dtype)
+        "tipo_detectado": tipo_columna
     }
