@@ -59,7 +59,17 @@ def analizar_columna(nombre: str):
         }
 
     elif tipo_columna in ("int64", "float64"):
-        tipo = "numerica"
+
+        return {
+            "columna": nombre,
+            "tipo": "numerica",
+            "min": float(df[nombre].min()),
+            "max": float(df[nombre].max()),
+            "promedio": round(float(df[nombre].mean()), 2),
+            "mediana": float(df[nombre].median()),
+            "desviacion_std": round(float(df[nombre].std()), 2),
+            "nulos": int(df[nombre].isna().sum())
+        }
 
     else:
         tipo = "desconocido"
