@@ -33,8 +33,19 @@ def analizar_columna(nombre: str):
         )
 
     tipo_columna = str(df[nombre].dtype)
+    
+    # Detectar categoría general del dato
+    if tipo_columna in ("str", "object"):
+        tipo = "categorica"
+
+    elif tipo_columna in ("int64", "float64"):
+        tipo = "numerica"
+
+    else:
+        tipo = "desconocido"
 
     return {
         "columna": nombre,
-        "tipo_detectado": tipo_columna
+        "tipo_detectado": tipo_columna,
+        "tipo": tipo
     }
