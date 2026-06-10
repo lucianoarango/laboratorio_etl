@@ -1,5 +1,7 @@
 import pandas as pd
 
+from pandas.api.types import is_datetime64_any_dtype
+
 from fastapi import HTTPException
 
 from app.database import engine
@@ -70,6 +72,21 @@ def analizar_columna(nombre: str):
             "desviacion_std": round(float(df[nombre].std()), 2),
             "nulos": int(df[nombre].isna().sum())
         }
+    #Se agregó con la principal funcionalidad de que se pueda trabajar con fechas en cualquier API, aunque
+    #para esta en especifico no sea el caso       
+    elif is_datetime64_any_dtype(df[nombre]):
+
+        fecha_min = df[nombre].min()
+        fecha_max = df[nombre].max()
+
+        return {
+            "columna": nombre,
+            "tipo": "fecha",
+            "min": str(fecha_min),
+            "max": str(fecha_max),
+            "rango_dias": int((fecha_max - fecha_min).days),
+            "nulos": int(df[nombre].isna().sum())
+        }        
 
     else:
         tipo = "desconocido"
