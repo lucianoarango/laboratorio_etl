@@ -9,7 +9,7 @@ mongo_client = MongoClient(MONGO_URL)
 mongo_db = mongo_client["etl_db"]
 mongo_collection = mongo_db["raw_data"]
 
-def extraer_datos(cantidad: int):
+def extraer_datos(cantidad: int) -> dict:
     """
     Extrae personajes de Rick & Morty y los guarda en MongoDB.
     Garantiza Idempotencia y PK Natural.
