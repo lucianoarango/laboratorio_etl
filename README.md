@@ -1,6 +1,6 @@
 # Laboratorio Final 2 - Pipeline ETL con FastAPI, MongoDB y MySQL
 
-Proyecto desarrollado con fin sustentado a **Bases de Datos para Ciencia de Datos**.
+Proyecto desarrollado con el fin de sustentarlo en el curso de **Bases de Datos para Ciencia de Datos**.
 
 La aplicación implementa un pipeline ETL completo utilizando:
 
@@ -494,7 +494,7 @@ El análisis detecta dinámicamente el tipo de columna y puede adaptarse a nueva
 # Integrantes
 
 * Luciano Arango
-* Iván Cogollo
+* Iván Durango
 * Marco Peñate
 
 ---

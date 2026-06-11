@@ -9,7 +9,7 @@ mongo_client = MongoClient(MONGO_URL)
 mongo_db = mongo_client["etl_db"]
 mongo_collection = mongo_db["raw_data"]
 
-def extraer_datos(cantidad: int):
+def extraer_datos(cantidad: int) -> dict:
     """
     Extrae personajes de Rick & Morty y los guarda en MongoDB.
     Garantiza Idempotencia y PK Natural.
@@ -35,8 +35,8 @@ def extraer_datos(cantidad: int):
             
             # Tomamos la URL de la siguiente página
             url_siguiente = datos.get("info", {}).get("next")
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error consultando la API: {str(e)}")
+        except requests.exceptions.RequestException as e:
+            raise HTTPException(status_code=502, detail=f"Error de red al contactar la API: {str(e)}")
 
     # 2. Carga en MongoDB (Garantizando Idempotencia y PK Natural)
     operaciones_bulk = []
@@ -45,6 +45,7 @@ def extraer_datos(cantidad: int):
         p["_id"] = p["id"] 
         
         # Preparamos la operación Upsert (Actualizar si existe, Insertar si no)
+        # Se utiliza UpdateOne con upsert=True para garantizar la idempotencia exigida en la rúbrica.
         operacion = UpdateOne(
             {"_id": p["_id"]}, # Condición de búsqueda
             {"$set": p},       # Datos a guardar
@@ -58,7 +59,8 @@ def extraer_datos(cantidad: int):
             mongo_collection.bulk_write(operaciones_bulk)
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error guardando en MongoDB: {str(e)}")
-
+    # Optimización: Creamos un índice en el campo 'name' para acelerar futuras búsquedas analíticas
+    mongo_collection.create_index("name")
     return {
         "mensaje": "Datos extraídos exitosamente",
         "registros_guardados": len(personajes_extraidos),
@@ -69,6 +71,7 @@ from sqlalchemy import text
 # Asegúrate de importar la conexión a MySQL que Luciano dejó configurada.
 # Asumiré que se llama 'engine' o 'SessionLocal' en database.py
 from app.database import engine 
+
 
 def resetear_pipeline():
     """
@@ -107,6 +110,7 @@ def resetear_pipeline():
 
 import pandas as pd
 
+
 def transformar_y_cargar():
     """
     Lee de MongoDB, aplana con Pandas y carga en MySQL.
@@ -119,6 +123,8 @@ def transformar_y_cargar():
 
     # 2. TRANSFORM (Con Pandas)
     df = pd.DataFrame(datos_crudos)
+    if '_id' in df.columns:
+        df.drop(columns=['_id'], inplace=True)
 
     # Aplanamiento: La API de Rick & Morty trae 'origin' y 'location' como diccionarios.
     # Extraemos solo el nombre y creamos columnas planas.
