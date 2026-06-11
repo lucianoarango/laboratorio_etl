@@ -120,6 +120,8 @@ def transformar_y_cargar():
 
     # 2. TRANSFORM (Con Pandas)
     df = pd.DataFrame(datos_crudos)
+    if '_id' in df.columns:
+    df.drop(columns=['_id'], inplace=True)
 
     # Aplanamiento: La API de Rick & Morty trae 'origin' y 'location' como diccionarios.
     # Extraemos solo el nombre y creamos columnas planas.
