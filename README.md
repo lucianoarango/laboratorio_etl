@@ -58,6 +58,7 @@ laboratorio_etl/
 │
 ├── app/
 │   ├── controllers/
+│   ├── docs/
 │   ├── services/
 │   ├── models/
 │   ├── views/
@@ -220,6 +221,7 @@ gender
 origen_nombre
 ubicacion_nombre
 total_episodios
+esta_vivo
 ```
 
 ---
