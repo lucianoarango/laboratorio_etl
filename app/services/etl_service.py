@@ -71,6 +71,7 @@ from sqlalchemy import text
 # Asumiré que se llama 'engine' o 'SessionLocal' en database.py
 from app.database import engine 
 
+
 def resetear_pipeline():
     """
     Limpia la colección de MongoDB y hace TRUNCATE a la tabla de MySQL (si existe).
@@ -108,6 +109,7 @@ def resetear_pipeline():
 
 import pandas as pd
 
+
 def transformar_y_cargar():
     """
     Lee de MongoDB, aplana con Pandas y carga en MySQL.
@@ -121,7 +123,7 @@ def transformar_y_cargar():
     # 2. TRANSFORM (Con Pandas)
     df = pd.DataFrame(datos_crudos)
     if '_id' in df.columns:
-    df.drop(columns=['_id'], inplace=True)
+        df.drop(columns=['_id'], inplace=True)
 
     # Aplanamiento: La API de Rick & Morty trae 'origin' y 'location' como diccionarios.
     # Extraemos solo el nombre y creamos columnas planas.

@@ -12,6 +12,7 @@ class ExtraccionRequest(BaseModel):
 def extraer_datos_api(request: ExtraccionRequest):
     return etl_service.extraer_datos(request.cantidad)
 
+
 @router.delete("/api/v1/etl/reset", status_code=200)
 def resetear_datos():
     return etl_service.resetear_pipeline()
