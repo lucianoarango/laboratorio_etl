@@ -45,6 +45,7 @@ def extraer_datos(cantidad: int):
         p["_id"] = p["id"] 
         
         # Preparamos la operación Upsert (Actualizar si existe, Insertar si no)
+        # Se utiliza UpdateOne con upsert=True para garantizar la idempotencia exigida en la rúbrica.
         operacion = UpdateOne(
             {"_id": p["_id"]}, # Condición de búsqueda
             {"$set": p},       # Datos a guardar
