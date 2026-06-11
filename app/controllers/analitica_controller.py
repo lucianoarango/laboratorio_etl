@@ -1,0 +1,24 @@
+from fastapi import APIRouter
+from app.views.schemas import ServiceStatusResponse
+from app.services.analitica_service import (
+    get_analytics_status,
+    analizar_columna,
+    obtener_perfil_dual
+)
+
+router = APIRouter(prefix="/analitica", tags=["Analitica"])
+
+
+@router.get("/status", response_model=ServiceStatusResponse)
+def get_status():
+    return get_analytics_status()
+
+
+@router.get("/columna/{nombre}")
+def obtener_analisis_columna(nombre: str):
+    return analizar_columna(nombre)
+
+
+@router.get("/perfil/{id_personaje}")
+def obtener_perfil(id_personaje: int):
+    return obtener_perfil_dual(id_personaje)
