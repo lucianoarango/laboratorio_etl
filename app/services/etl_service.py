@@ -59,7 +59,8 @@ def extraer_datos(cantidad: int) -> dict:
             mongo_collection.bulk_write(operaciones_bulk)
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error guardando en MongoDB: {str(e)}")
-
+    # Optimización: Creamos un índice en el campo 'name' para acelerar futuras búsquedas analíticas
+    mongo_collection.create_index("name")
     return {
         "mensaje": "Datos extraídos exitosamente",
         "registros_guardados": len(personajes_extraidos),
