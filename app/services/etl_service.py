@@ -35,8 +35,8 @@ def extraer_datos(cantidad: int):
             
             # Tomamos la URL de la siguiente página
             url_siguiente = datos.get("info", {}).get("next")
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error consultando la API: {str(e)}")
+        except requests.exceptions.RequestException as e:
+            raise HTTPException(status_code=502, detail=f"Error de red al contactar la API: {str(e)}")
 
     # 2. Carga en MongoDB (Garantizando Idempotencia y PK Natural)
     operaciones_bulk = []
