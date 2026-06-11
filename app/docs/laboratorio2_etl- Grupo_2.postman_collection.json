@@ -1,0 +1,203 @@
+{
+  "info": {
+    "_postman_id": "6b8d3092-62f3-41de-8328-d36ec2c76b5f",
+    "name": "laboratorio2_etl: Grupo_2",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "55101094",
+    "_collection_link": "https://go.postman.co/collection/55101094-6b8d3092-62f3-41de-8328-d36ec2c76b5f?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "GET / analitica / status",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/analitica/status",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "analitica",
+            "status"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "/api/v1/etl/extraer",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cantidad\": 20\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/v1/etl/extraer",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "v1",
+            "etl",
+            "extraer"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "/api/v1/etl/transformar",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/v1/etl/transformar",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "v1",
+            "etl",
+            "transformar"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "/api/v1/columna/{nombre}",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/analitica/columna/Morty",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "analitica",
+            "columna",
+            "Morty"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "/api/v1/perfil/{id}",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "accept",
+            "value": ""
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/analitica/perfil/30",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "analitica",
+            "perfil",
+            "30"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "/api/v1/etl/reset",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/v1/etl/reset",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "v1",
+            "etl",
+            "reset"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
