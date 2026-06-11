@@ -66,6 +66,22 @@ def analizar_columna(nombre: str):
 
     elif tipo_columna in ("int64", "float64"):
 
+        valores_unicos = set(
+            df[nombre]
+            .dropna()
+            .unique()
+        )
+
+        if valores_unicos.issubset({0, 1}):
+
+            return {
+                "columna": nombre,
+                "tipo": "booleana",
+                "true": int((df[nombre] == 1).sum()),
+                "false": int((df[nombre] == 0).sum()),
+                "nulos": int(df[nombre].isna().sum())
+            }
+
         return {
             "columna": nombre,
             "tipo": "numerica",
@@ -76,6 +92,8 @@ def analizar_columna(nombre: str):
             "desviacion_std": round(float(df[nombre].std()), 2),
             "nulos": int(df[nombre].isna().sum())
         }
+        
+        
     #Se agregó con la principal funcionalidad de que se pueda trabajar con fechas en cualquier API, aunque
     #para esta en especifico no sea el caso       
     elif is_datetime64_any_dtype(df[nombre]):

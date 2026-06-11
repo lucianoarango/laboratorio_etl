@@ -127,9 +127,15 @@ def transformar_y_cargar():
     
     # Derivada: Contamos cuántos episodios tiene el personaje
     df['total_episodios'] = df['episode'].apply(lambda x: len(x) if isinstance(x, list) else 0)
+    
+    
+    # Variable derivada booleana
+    df['esta_vivo'] = df['status'].apply(
+        lambda x: True if x == "Alive" else False
+    )
 
-    # Seleccionamos las 8 columnas exigidas por la rúbrica
-    columnas_finales = ['_id', 'name', 'status', 'species', 'gender', 'origen_nombre', 'ubicacion_nombre', 'total_episodios']
+    # Seleccionamos al menos 8 columnas exigidas por la rúbrica
+    columnas_finales = ['_id', 'name', 'status', 'species', 'gender', 'origen_nombre', 'ubicacion_nombre', 'total_episodios', 'esta_vivo']
     df_limpio = df[columnas_finales].copy()
 
     # Renombramos '_id' a 'id_personaje' para MySQL (PK Alineada)
@@ -151,7 +157,8 @@ def transformar_y_cargar():
                 gender VARCHAR(50),
                 origen_nombre VARCHAR(100),
                 ubicacion_nombre VARCHAR(100),
-                total_episodios INT
+                total_episodios INT,
+                esta_vivo BOOLEAN
             )
         """))
 
@@ -159,8 +166,8 @@ def transformar_y_cargar():
         for _, row in df_limpio.iterrows():
             query = text("""
                 INSERT INTO personajes_master 
-                (id_personaje, name, status, species, gender, origen_nombre, ubicacion_nombre, total_episodios)
-                VALUES (:id, :name, :status, :species, :gender, :origen, :ubicacion, :episodios)
+                (id_personaje, name, status, species, gender, origen_nombre, ubicacion_nombre, total_episodios, esta_vivo)
+                VALUES (:id, :name, :status, :species, :gender, :origen, :ubicacion, :episodios, :esta_vivo)
                 ON DUPLICATE KEY UPDATE
                 name=VALUES(name), status=VALUES(status), species=VALUES(species), 
                 gender=VALUES(gender), origen_nombre=VALUES(origen_nombre), 
@@ -169,7 +176,7 @@ def transformar_y_cargar():
             conn.execute(query, {
                 "id": row['id_personaje'], "name": row['name'], "status": row['status'],
                 "species": row['species'], "gender": row['gender'], "origen": row['origen_nombre'],
-                "ubicacion": row['ubicacion_nombre'], "episodios": row['total_episodios']
+                "ubicacion": row['ubicacion_nombre'], "episodios": row['total_episodios'], "esta_vivo": row["esta_vivo"]
             })
             registros_procesados += 1
         
