@@ -1,6 +1,6 @@
 # Laboratorio Final 2 - Pipeline ETL con FastAPI, MongoDB y MySQL
 
-Proyecto desarrollado para la asignatura **Bases de Datos para Ciencia de Datos**.
+Proyecto desarrollado con fin sustentado a **Bases de Datos para Ciencia de Datos**.
 
 La aplicación implementa un pipeline ETL completo utilizando:
 
@@ -101,7 +101,8 @@ python -m venv .venv
 Activar entorno:
 
 ```powershell
-.venv\Scripts\activate
+source .venv/bin/activate # macOS / Linux
+.venv\Scripts\activate # Windows
 ```
 
 Instalar dependencias:
@@ -146,6 +147,17 @@ Endpoint:
 ```http
 POST /api/v1/etl/extraer
 ```
+cURL: 
+
+```cURL
+curl -X 'POST' \
+  'http://127.0.0.1:8000/api/v1/etl/extraer' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "cantidad": 20
+}'
+```
 
 Body:
 
@@ -171,6 +183,15 @@ Endpoint:
 
 ```http
 POST /api/v1/etl/transformar
+```
+
+cURL: 
+
+```cURL
+curl -X 'POST' \
+  'http://127.0.0.1:8000/api/v1/etl/transformar' \
+  -H 'accept: application/json' \
+  -d ''
 ```
 
 Responsabilidades:
@@ -211,6 +232,14 @@ Endpoint:
 DELETE /api/v1/etl/reset
 ```
 
+cURL: 
+
+```cURL
+curl -X 'DELETE' \
+  'http://127.0.0.1:8000/api/v1/etl/reset' \
+  -H 'accept: application/json'
+```
+
 Responsabilidades:
 
 * Eliminar documentos RAW de MongoDB.
@@ -241,17 +270,25 @@ Tipos soportados:
 
 Ejemplo:
 
+cURL: 
+
+```cURL
+curl -X 'GET' \
+  'http://127.0.0.1:8000/analitica/columna/species' \
+  -H 'accept: application/json'
+```
+
 ```json
 {
-  "columna": "species",
-  "tipo": "categorica",
-  "valores_unicos": 2,
-  "distribucion": {
-    "Human": 15,
-    "Alien": 5
-  },
-  "valor_mas_comun": "Human",
-  "nulos": 0
+    "columna": "species",
+    "tipo": "categorica",
+    "valores_unicos": 2,
+    "distribucion": {
+        "Human": 15,
+        "Alien": 5
+    },
+    "valor_mas_comun": "Human",
+    "nulos": 0
 }
 ```
 
@@ -259,16 +296,24 @@ Ejemplo:
 
 Ejemplo:
 
+cURL: 
+
+```cURL
+curl -X 'GET' \
+  'http://127.0.0.1:8000/analitica/columna/total_episodios' \
+  -H 'accept: application/json'
+```
+
 ```json
 {
-  "columna": "total_episodios",
-  "tipo": "numerica",
-  "min": 1,
-  "max": 51,
-  "promedio": 12.1,
-  "mediana": 1,
-  "desviacion_std": 19.66,
-  "nulos": 0
+    "columna": "total_episodios",
+    "tipo": "numerica",
+    "min": 1.0,
+    "max": 51.0,
+    "promedio": 12.1,
+    "mediana": 1.0,
+    "desviacion_std": 19.66,
+    "nulos": 0
 }
 ```
 
@@ -285,6 +330,14 @@ Endpoint:
 ```http
 GET /api/v1/perfil/{id}
 ```
+cURL: 
+
+```cURL
+curl -X 'GET' \
+  'http://127.0.0.1:8000/analitica/perfil/3' \
+  -H 'accept: application/json'
+```
+
 
 Objetivo:
 
@@ -294,9 +347,81 @@ Ejemplo:
 
 ```json
 {
-  "id": 3,
-  "mongo": {...},
-  "mysql": {...}
+    "id": 3,
+    "mongo": {
+        "created": "2017-11-04T19:09:56.428Z",
+        "episode": [
+            "https://rickandmortyapi.com/api/episode/6",
+            "https://rickandmortyapi.com/api/episode/7",
+            "https://rickandmortyapi.com/api/episode/8",
+            "https://rickandmortyapi.com/api/episode/9",
+            "https://rickandmortyapi.com/api/episode/10",
+            "https://rickandmortyapi.com/api/episode/11",
+            "https://rickandmortyapi.com/api/episode/12",
+            "https://rickandmortyapi.com/api/episode/14",
+            "https://rickandmortyapi.com/api/episode/15",
+            "https://rickandmortyapi.com/api/episode/16",
+            "https://rickandmortyapi.com/api/episode/17",
+            "https://rickandmortyapi.com/api/episode/18",
+            "https://rickandmortyapi.com/api/episode/19",
+            "https://rickandmortyapi.com/api/episode/20",
+            "https://rickandmortyapi.com/api/episode/21",
+            "https://rickandmortyapi.com/api/episode/22",
+            "https://rickandmortyapi.com/api/episode/23",
+            "https://rickandmortyapi.com/api/episode/24",
+            "https://rickandmortyapi.com/api/episode/25",
+            "https://rickandmortyapi.com/api/episode/26",
+            "https://rickandmortyapi.com/api/episode/27",
+            "https://rickandmortyapi.com/api/episode/29",
+            "https://rickandmortyapi.com/api/episode/30",
+            "https://rickandmortyapi.com/api/episode/31",
+            "https://rickandmortyapi.com/api/episode/32",
+            "https://rickandmortyapi.com/api/episode/33",
+            "https://rickandmortyapi.com/api/episode/34",
+            "https://rickandmortyapi.com/api/episode/35",
+            "https://rickandmortyapi.com/api/episode/36",
+            "https://rickandmortyapi.com/api/episode/38",
+            "https://rickandmortyapi.com/api/episode/39",
+            "https://rickandmortyapi.com/api/episode/40",
+            "https://rickandmortyapi.com/api/episode/41",
+            "https://rickandmortyapi.com/api/episode/42",
+            "https://rickandmortyapi.com/api/episode/43",
+            "https://rickandmortyapi.com/api/episode/44",
+            "https://rickandmortyapi.com/api/episode/45",
+            "https://rickandmortyapi.com/api/episode/46",
+            "https://rickandmortyapi.com/api/episode/47",
+            "https://rickandmortyapi.com/api/episode/48",
+            "https://rickandmortyapi.com/api/episode/49",
+            "https://rickandmortyapi.com/api/episode/51"
+        ],
+        "gender": "Female",
+        "id": 3,
+        "image": "https://rickandmortyapi.com/api/character/avatar/3.jpeg",
+        "location": {
+            "name": "Earth (Replacement Dimension)",
+            "url": "https://rickandmortyapi.com/api/location/20"
+        },
+        "name": "Summer Smith",
+        "origin": {
+            "name": "Earth (Replacement Dimension)",
+            "url": "https://rickandmortyapi.com/api/location/20"
+        },
+        "species": "Human",
+        "status": "Alive",
+        "type": "",
+        "url": "https://rickandmortyapi.com/api/character/3"
+    },
+    "mysql": {
+        "id_personaje": 3,
+        "name": "Summer Smith",
+        "status": "Alive",
+        "species": "Human",
+        "gender": "Female",
+        "origen_nombre": "Earth (Replacement Dimension)",
+        "ubicacion_nombre": "Earth (Replacement Dimension)",
+        "total_episodios": 42
+    },
+    "warning": null
 }
 ```
 
