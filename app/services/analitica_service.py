@@ -4,9 +4,7 @@ from pandas.api.types import is_datetime64_any_dtype
 
 from fastapi import HTTPException
 
-from app.database import engine
-
-from app.database import mongo_db
+from app.database import engine, get_raw_collection
 
 from sqlalchemy import text
 
@@ -123,7 +121,7 @@ def analizar_columna(nombre: str):
 
 def obtener_perfil_dual(id_personaje: int):
 
-    documento_mongo = mongo_db["raw_data"].find_one(
+    documento_mongo = get_raw_collection().find_one(
         {"_id": id_personaje}
     )
 
@@ -138,7 +136,10 @@ def obtener_perfil_dual(id_personaje: int):
             query,
             {"id": id_personaje}
         ).mappings().first()
-        
+    
+    mysql_data = dict(resultado_mysql) if resultado_mysql else None
+
+
     if documento_mongo:
         documento_mongo.pop("_id", None)
         
@@ -160,5 +161,5 @@ def obtener_perfil_dual(id_personaje: int):
     "id": id_personaje,
     "mongo": documento_mongo,
     "mysql": resultado_mysql,
-    "warning": warning
+    "warning": warning,
 }
