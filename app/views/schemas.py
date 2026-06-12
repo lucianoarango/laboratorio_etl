@@ -1,6 +1,14 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
+
+class ExtraccionRequest(BaseModel):
+    cantidad: int = Field(
+        gt=0,
+        description="Cantidad de personajes a extraer desde Rick and Morty API",
+    )
+
+    
 class AppInfoResponse(BaseModel):
     app_name: str
     environment: str
