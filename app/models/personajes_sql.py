@@ -1,3 +1,20 @@
+# ==========================================================
+# MODELS
+# ----------------------------------------------------------
+# Este archivo contiene los modelos de datos utilizados por
+# FastAPI y Pydantic para validar solicitudes y respuestas.
+#
+# Responsabilidades:
+# - Definir la estructura esperada de los datos.
+# - Validar tipos y restricciones.
+# - Documentar automáticamente la API mediante Swagger.
+#
+# Ejemplo:
+# - Response Models
+# - Request Models
+# - Esquemas de validación
+# ==========================================================
+
 from sqlalchemy import Boolean, Column, Integer, String
 
 from app.database import Base

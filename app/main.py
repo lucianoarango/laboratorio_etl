@@ -1,3 +1,14 @@
+"""
+PUNTO DE ENTRADA DE LA APLICACIÓN
+
+Inicializa FastAPI.
+
+Responsabilidades:
+- Registrar routers.
+- Configurar documentación Swagger.
+- Configurar la aplicación web.
+"""
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI

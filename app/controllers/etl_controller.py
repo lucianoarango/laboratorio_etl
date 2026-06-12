@@ -1,3 +1,18 @@
+"""
+CONTROLADORES (API LAYER)
+
+Este módulo define los endpoints expuestos por FastAPI.
+
+Responsabilidades:
+- Recibir solicitudes HTTP.
+- Validar parámetros de entrada.
+- Llamar a los servicios correspondientes.
+- Retornar respuestas al cliente.
+
+No contiene lógica de negocio.
+La lógica principal se encuentra en la capa services.
+"""
+
 from fastapi import APIRouter
 from app.services import etl_service
 from app.views.schemas import ExtraccionRequest

@@ -1,3 +1,17 @@
+"""
+SERVICIOS (BUSINESS LOGIC LAYER)
+
+Contiene la lógica principal del sistema ETL.
+
+Responsabilidades:
+- Extraer datos desde fuentes externas.
+- Transformar datos.
+- Cargar información en las bases de datos.
+- Ejecutar procesos analíticos.
+
+Esta capa es independiente de los endpoints HTTP.
+"""
+
 import pandas as pd
 
 from pandas.api.types import is_datetime64_any_dtype

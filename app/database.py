@@ -1,3 +1,16 @@
+"""
+CONFIGURACIÓN DE BASE DE DATOS
+
+Este módulo centraliza las conexiones a las bases de datos utilizadas
+por el proyecto.
+
+Bases utilizadas:
+- MongoDB (almacenamiento temporal/raw data)
+- MySQL (almacenamiento estructurado)
+
+Permite reutilizar las conexiones en toda la aplicación.
+"""
+
 from pymongo import MongoClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import declarative_base, sessionmaker

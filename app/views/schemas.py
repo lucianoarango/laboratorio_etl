@@ -1,3 +1,18 @@
+# ==========================================================
+# VIEWS
+# ----------------------------------------------------------
+# Este módulo se encarga de presentar la información al
+# usuario final.
+#
+# Responsabilidades:
+# - Mostrar resultados procesados.
+# - Formatear respuestas.
+# - Servir como capa de presentación.
+#
+# En arquitecturas modernas con FastAPI, esta capa suele
+# estar integrada dentro de los controllers o routers.
+# ==========================================================
+
 from pydantic import BaseModel, Field
 from typing import List
 
