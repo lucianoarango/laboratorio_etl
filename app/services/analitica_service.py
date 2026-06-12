@@ -163,3 +163,56 @@ def obtener_perfil_dual(id_personaje: int):
     "mysql": resultado_mysql,
     "warning": warning,
 }
+
+
+def obtener_calidad_datos():
+    raw_collection = get_raw_collection()
+
+    documentos_mongo = list(raw_collection.find({}, {"_id": 1}))
+    ids_mongo = [doc["_id"] for doc in documentos_mongo]
+
+    query = """
+    SELECT id_personaje
+    FROM personajes_master
+    """
+
+    df_mysql = pd.read_sql(query, engine)
+
+    ids_mysql = df_mysql["id_personaje"].tolist() if not df_mysql.empty else []
+
+    set_mongo = set(ids_mongo)
+    set_mysql = set(ids_mysql)
+
+    duplicados_mysql = int(df_mysql["id_personaje"].duplicated().sum()) if not df_mysql.empty else 0
+
+    columnas_query = """
+    SELECT *
+    FROM personajes_master
+    LIMIT 0
+    """
+
+    columnas_df = pd.read_sql(columnas_query, engine)
+    cantidad_columnas_sql = len(columnas_df.columns)
+
+    ids_solo_mongo = sorted(list(set_mongo - set_mysql))
+    ids_solo_mysql = sorted(list(set_mysql - set_mongo))
+
+    pk_alineada = (
+        duplicados_mysql == 0
+        and len(ids_solo_mongo) == 0
+        and len(ids_solo_mysql) == 0
+    )
+
+    cumple_minimo_columnas = cantidad_columnas_sql >= 8
+
+    return {
+        "mongo_total_documentos": len(ids_mongo),
+        "mysql_total_registros": len(ids_mysql),
+        "mysql_ids_duplicados": duplicados_mysql,
+        "sql_columnas": cantidad_columnas_sql,
+        "sql_minimo_8_columnas": cumple_minimo_columnas,
+        "ids_solo_en_mongo": ids_solo_mongo,
+        "ids_solo_en_mysql": ids_solo_mysql,
+        "pk_alineada": pk_alineada,
+        "estado": "ok" if pk_alineada and cumple_minimo_columnas else "warning",
+    }

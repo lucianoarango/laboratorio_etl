@@ -3,7 +3,8 @@ from app.views.schemas import ServiceStatusResponse
 from app.services.analitica_service import (
     get_analytics_status,
     analizar_columna,
-    obtener_perfil_dual
+    obtener_calidad_datos, 
+    obtener_perfil_dual, 
 )
 
 router = APIRouter(prefix="/analitica", tags=["Analitica"])
