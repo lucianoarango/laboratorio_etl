@@ -46,6 +46,6 @@ def obtener_perfil(id_personaje: int):
 def obtener_perfil_alias(id_personaje: int):
     return obtener_perfil_dual(id_personaje)
 
-@router.get("/calidad-datos", response_model=DataQualityResponse)
+@router.get("/calidad-datos")
 def obtener_reporte_calidad():
     return obtener_calidad_datos()
