@@ -5,7 +5,6 @@ from fastapi import FastAPI
 from app.config import settings
 from app.controllers import analitica_controller, etl_controller
 from app.database import create_mysql_tables
-from app.controllers import etl_controller
 
 
 @asynccontextmanager
@@ -27,3 +26,4 @@ app = FastAPI(
 
 app.include_router(etl_controller.router)
 app.include_router(analitica_controller.router)
+app.include_router(analitica_controller.perfil_router)

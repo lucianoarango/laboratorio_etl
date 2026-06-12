@@ -1,19 +1,24 @@
 import requests
-from pymongo import MongoClient, UpdateOne
 from fastapi import HTTPException
-import os
 
-# Conexión a MongoDB usando la variable de entorno
-MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017/")
-mongo_client = MongoClient(MONGO_URL)
-mongo_db = mongo_client["etl_db"]
-mongo_collection = mongo_db["raw_data"]
+import pandas as pd
+import requests
+from fastapi import HTTPException
+from pymongo import UpdateOne
+from sqlalchemy import text
+
+from app.config import settings
+from app.database import engine, get_raw_collection
+
 
 def extraer_datos(cantidad: int) -> dict:
     """
     Extrae personajes de Rick & Morty y los guarda en MongoDB.
     Garantiza Idempotencia y PK Natural.
     """
+    mongo_collection = get_raw_collection()
+    url_base = f"{settings.api_base_url}/character"
+
     if cantidad <= 0:
         raise HTTPException(status_code=400, detail="La cantidad debe ser mayor a 0")
 
@@ -24,7 +29,7 @@ def extraer_datos(cantidad: int) -> dict:
     # 1. Extracción Paginada (Bucle while para traer la cantidad exacta)
     while url_siguiente and len(personajes_extraidos) < cantidad:
         try:
-            respuesta = requests.get(url_siguiente)
+            respuesta = requests.get(url_siguiente, timeout=10)
             respuesta.raise_for_status()
             datos = respuesta.json()
             
@@ -77,6 +82,8 @@ def resetear_pipeline():
     """
     Limpia la colección de MongoDB y hace TRUNCATE a la tabla de MySQL (si existe).
     """
+    mongo_collection = get_raw_collection()
+
     try:
         # 1. Limpiar MongoDB
         resultado_mongo = mongo_collection.delete_many({})
@@ -114,48 +121,92 @@ import pandas as pd
 def transformar_y_cargar():
     """
     Lee de MongoDB, aplana con Pandas y carga en MySQL.
-    Garantiza Idempotencia (ON DUPLICATE KEY UPDATE) y PK Alineada.
+    Garantiza idempotencia con ON DUPLICATE KEY UPDATE
+    y mantiene la PK alineada entre MongoDB y MySQL.
     """
-    # 1. EXTRACT (Desde MongoDB)
+    mongo_collection = get_raw_collection()
+
     datos_crudos = list(mongo_collection.find())
     if not datos_crudos:
-        raise HTTPException(status_code=400, detail="No hay datos en MongoDB para transformar.")
+        raise HTTPException(
+            status_code=400,
+            detail="No hay datos en MongoDB para transformar.",
+        )
 
-    # 2. TRANSFORM (Con Pandas)
     df = pd.DataFrame(datos_crudos)
-    print(df.columns.tolist())
 
+    columnas_requeridas = [
+        "_id",
+        "name",
+        "status",
+        "species",
+        "gender",
+        "origin",
+        "location",
+        "episode",
+    ]
 
-    # Aplanamiento: La API de Rick & Morty trae 'origin' y 'location' como diccionarios.
-    # Extraemos solo el nombre y creamos columnas planas.
-    df['origen_nombre'] = df['origin'].apply(lambda x: x.get('name') if isinstance(x, dict) else 'Desconocido')
-    df['ubicacion_nombre'] = df['location'].apply(lambda x: x.get('name') if isinstance(x, dict) else 'Desconocido')
-    
-    # Derivada: Contamos cuántos episodios tiene el personaje
-    df['total_episodios'] = df['episode'].apply(lambda x: len(x) if isinstance(x, list) else 0)
-    
-    
-    # Variable derivada booleana
-    df['esta_vivo'] = df['status'].apply(
-        lambda x: True if x == "Alive" else False
+    for columna in columnas_requeridas:
+        if columna not in df.columns:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Falta la columna requerida en MongoDB: {columna}",
+            )
+
+    df["origen_nombre"] = df["origin"].apply(
+        lambda x: x.get("name") if isinstance(x, dict) else "Desconocido"
     )
-    
 
-    # Seleccionamos al menos 8 columnas exigidas por la rúbrica
-    columnas_finales = ['_id', 'name', 'status', 'species', 'gender', 'origen_nombre', 'ubicacion_nombre', 'total_episodios', 'esta_vivo']
+    df["ubicacion_nombre"] = df["location"].apply(
+        lambda x: x.get("name") if isinstance(x, dict) else "Desconocido"
+    )
+
+    df["total_episodios"] = df["episode"].apply(
+        lambda x: len(x) if isinstance(x, list) else 0
+    )
+
+    df["esta_vivo"] = df["status"].apply(lambda x: x == "Alive")
+
+    columnas_finales = [
+        "_id",
+        "name",
+        "status",
+        "species",
+        "gender",
+        "origen_nombre",
+        "ubicacion_nombre",
+        "total_episodios",
+        "esta_vivo",
+    ]
+
     df_limpio = df[columnas_finales].copy()
-    
+    df_limpio.rename(columns={"_id": "id_personaje"}, inplace=True)
 
-    # Renombramos '_id' a 'id_personaje' para MySQL (PK Alineada)
-    df_limpio.rename(columns={'_id': 'id_personaje'}, inplace=True)
+    columnas_texto = [
+        "name",
+        "status",
+        "species",
+        "gender",
+        "origen_nombre",
+        "ubicacion_nombre",
+    ]
 
-    # Manejo de nulos
-    df_limpio.fillna('N/A', inplace=True)
+    df_limpio[columnas_texto] = df_limpio[columnas_texto].fillna("N/A")
+    df_limpio["id_personaje"] = df_limpio["id_personaje"].astype(int)
+    df_limpio["total_episodios"] = (
+        df_limpio["total_episodios"]
+        .fillna(0)
+        .astype(int)
+    )
+    df_limpio["esta_vivo"] = (
+        df_limpio["esta_vivo"]
+        .fillna(False)
+        .astype(bool)
+    )
 
-    # 3. LOAD (Hacia MySQL)
     registros_procesados = 0
+
     with engine.connect() as conn:
-        # Resiliencia: Creamos la tabla si no existe
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS personajes_master (
                 id_personaje INT PRIMARY KEY,
@@ -170,29 +221,62 @@ def transformar_y_cargar():
             )
         """))
 
-        # Inserción con Idempotencia (Upsert en MySQL)
         for _, row in df_limpio.iterrows():
             query = text("""
-                INSERT INTO personajes_master 
-                (id_personaje, name, status, species, gender, origen_nombre, ubicacion_nombre, total_episodios, esta_vivo)
-                VALUES (:id, :name, :status, :species, :gender, :origen, :ubicacion, :episodios, :esta_vivo)
+                INSERT INTO personajes_master
+                (
+                    id_personaje,
+                    name,
+                    status,
+                    species,
+                    gender,
+                    origen_nombre,
+                    ubicacion_nombre,
+                    total_episodios,
+                    esta_vivo
+                )
+                VALUES
+                (
+                    :id,
+                    :name,
+                    :status,
+                    :species,
+                    :gender,
+                    :origen,
+                    :ubicacion,
+                    :episodios,
+                    :esta_vivo
+                )
                 ON DUPLICATE KEY UPDATE
-                name=VALUES(name), status=VALUES(status), species=VALUES(species), 
-                gender=VALUES(gender), origen_nombre=VALUES(origen_nombre), 
-                ubicacion_nombre=VALUES(ubicacion_nombre), total_episodios=VALUES(total_episodios)
+                    name = VALUES(name),
+                    status = VALUES(status),
+                    species = VALUES(species),
+                    gender = VALUES(gender),
+                    origen_nombre = VALUES(origen_nombre),
+                    ubicacion_nombre = VALUES(ubicacion_nombre),
+                    total_episodios = VALUES(total_episodios),
+                    esta_vivo = VALUES(esta_vivo)
             """)
+
             conn.execute(query, {
-                "id": row['id_personaje'], "name": row['name'], "status": row['status'],
-                "species": row['species'], "gender": row['gender'], "origen": row['origen_nombre'],
-                "ubicacion": row['ubicacion_nombre'], "episodios": row['total_episodios'], "esta_vivo": row["esta_vivo"]
+                "id": row["id_personaje"],
+                "name": row["name"],
+                "status": row["status"],
+                "species": row["species"],
+                "gender": row["gender"],
+                "origen": row["origen_nombre"],
+                "ubicacion": row["ubicacion_nombre"],
+                "episodios": row["total_episodios"],
+                "esta_vivo": row["esta_vivo"],
             })
+
             registros_procesados += 1
-        
+
         conn.commit()
 
     return {
         "mensaje": "Pipeline finalizado",
         "registros_procesados": registros_procesados,
         "tabla_destino": "personajes_master",
-        "status": 200
+        "status": 200,
     }
