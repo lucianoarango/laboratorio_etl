@@ -140,19 +140,11 @@ def transformar_y_cargar():
         lambda x: True if x == "Alive" else False
     )
     
-    
-    print("COLUMNAS DEL DF ANTES DE DF_LIMPIO:")
-    print(df.columns.tolist())
 
     # Seleccionamos al menos 8 columnas exigidas por la rúbrica
     columnas_finales = ['_id', 'name', 'status', 'species', 'gender', 'origen_nombre', 'ubicacion_nombre', 'total_episodios', 'esta_vivo']
     df_limpio = df[columnas_finales].copy()
     
-    print("COLUMNAS DEL DF:")
-    print(df.columns.tolist())
-
-    print("COLUMNAS FINALES:")
-    print(columnas_finales)
 
     # Renombramos '_id' a 'id_personaje' para MySQL (PK Alineada)
     df_limpio.rename(columns={'_id': 'id_personaje'}, inplace=True)
