@@ -6,6 +6,8 @@ from app.services.analitica_service import (
     obtener_calidad_datos, 
     obtener_perfil_dual, 
 )
+from app.views.schemas import DataQualityResponse, ServiceStatusResponse
+
 
 router = APIRouter(prefix="/analitica", tags=["Analitica"])
 
@@ -28,3 +30,7 @@ def obtener_perfil(id_personaje: int):
 @perfil_router.get("/perfil/{id_personaje}")
 def obtener_perfil_alias(id_personaje: int):
     return obtener_perfil_dual(id_personaje)
+
+@router.get("/calidad-datos", response_model=DataQualityResponse)
+def obtener_reporte_calidad():
+    return obtener_calidad_datos()

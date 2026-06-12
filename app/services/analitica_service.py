@@ -6,7 +6,7 @@ from fastapi import HTTPException
 
 from app.database import engine, get_raw_collection
 
-from sqlalchemy import text
+from sqlalchemy import inspect, text
 
 
 def get_analytics_status() -> dict:
