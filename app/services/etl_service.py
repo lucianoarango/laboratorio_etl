@@ -1,19 +1,24 @@
 import requests
-from pymongo import MongoClient, UpdateOne
 from fastapi import HTTPException
-import os
 
-# Conexión a MongoDB usando la variable de entorno
-MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017/")
-mongo_client = MongoClient(MONGO_URL)
-mongo_db = mongo_client["etl_db"]
-mongo_collection = mongo_db["raw_data"]
+import pandas as pd
+import requests
+from fastapi import HTTPException
+from pymongo import UpdateOne
+from sqlalchemy import text
+
+from app.config import settings
+from app.database import engine, get_raw_collection
+
 
 def extraer_datos(cantidad: int) -> dict:
     """
     Extrae personajes de Rick & Morty y los guarda en MongoDB.
     Garantiza Idempotencia y PK Natural.
     """
+    mongo_collection = get_raw_collection()
+    url_base = f"{settings.api_base_url}/character"
+
     if cantidad <= 0:
         raise HTTPException(status_code=400, detail="La cantidad debe ser mayor a 0")
 
@@ -24,7 +29,7 @@ def extraer_datos(cantidad: int) -> dict:
     # 1. Extracción Paginada (Bucle while para traer la cantidad exacta)
     while url_siguiente and len(personajes_extraidos) < cantidad:
         try:
-            respuesta = requests.get(url_siguiente)
+            respuesta = requests.get(url_siguiente, timeout=10)
             respuesta.raise_for_status()
             datos = respuesta.json()
             
@@ -77,6 +82,8 @@ def resetear_pipeline():
     """
     Limpia la colección de MongoDB y hace TRUNCATE a la tabla de MySQL (si existe).
     """
+    mongo_collection = get_raw_collection()
+
     try:
         # 1. Limpiar MongoDB
         resultado_mongo = mongo_collection.delete_many({})
@@ -116,6 +123,8 @@ def transformar_y_cargar():
     Lee de MongoDB, aplana con Pandas y carga en MySQL.
     Garantiza Idempotencia (ON DUPLICATE KEY UPDATE) y PK Alineada.
     """
+    mongo_collection = get_raw_collection()
+    
     # 1. EXTRACT (Desde MongoDB)
     datos_crudos = list(mongo_collection.find())
     if not datos_crudos:
