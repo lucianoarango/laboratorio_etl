@@ -8,6 +8,7 @@ from app.services.analitica_service import (
 
 router = APIRouter(prefix="/analitica", tags=["Analitica"])
 
+perfil_router = APIRouter(tags=["Perfil"])
 
 @router.get("/status", response_model=ServiceStatusResponse)
 def get_status():
@@ -21,4 +22,8 @@ def obtener_analisis_columna(nombre: str):
 
 @router.get("/perfil/{id_personaje}")
 def obtener_perfil(id_personaje: int):
+    return obtener_perfil_dual(id_personaje)
+
+@perfil_router.get("/perfil/{id_personaje}")
+def obtener_perfil_alias(id_personaje: int):
     return obtener_perfil_dual(id_personaje)
